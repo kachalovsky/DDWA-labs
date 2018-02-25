@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" type="text/css" href="./styles/style.css">
+</head>
+<body>
+    <input type="button" onclick="app.navigateToMainView()" class="navigation-button" value="Назад"/>
+    <div id="content"></div>
+</body>
+<script src="Application/Utils/API-helper/index.js"></script>
+<script src="Application/Models/Product/index.js"></script>
+<script src="Application/index.js"></script>
+<script>
+  setTimeout(function () {
+    app.fetchProductById(app.getParamFromQueryString('id'), function (err, product) {
+      app.displayProductDetails(product, document.getElementById('content'));
+    });
+  }, 0)
+</script>
+</html>

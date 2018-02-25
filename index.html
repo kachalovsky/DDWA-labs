@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Products manager</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="./styles/style.css">
+</head>
+<body>
+    <div id="create-area">
+        <div id="create-controller">
+            <input id="create-controller-button" value="Добавить продукт" onclick="app.onCreationControlPressed()" type="button" class="navigation-button">
+        </div>
+        <div id="create-content" style="display: none">
+        </div>
+    </div>
+    <div id="content">
+
+    </div>
+    <script src="Application/Utils/API-helper/index.js"></script>
+    <script src="Application/Models/Product/index.js"></script>
+    <script src="Application/index.js"></script>
+    <script>
+        setTimeout(function () {
+          app.updateContent();
+        }, 0)
+    </script>
+</body>
+</html>
