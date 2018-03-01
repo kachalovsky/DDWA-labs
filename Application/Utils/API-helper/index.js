@@ -9,23 +9,23 @@ export default class ApiHelper {
     constructor(config) {
       this.url = config.url || config.URL;
 
-      this[methods.GET] = (config) => {
-        return this.request(methods.GET, config)
+      this[methods.GET] = async (config) => {
+        return await this.request(methods.GET, config)
       };
 
-      this[methods.POST] = (body, config) => {
+      this[methods.POST] = async (body, config) => {
         config.body = body;
-        return this.request(methods.POST, config)
+        return await this.request(methods.POST, config)
       };
 
-      this[methods.PUT] = (body, config) => {
+      this[methods.PUT] = async (body, config) => {
         config.body = body;
-        return this.request(methods.PUT, config)
+        return await this.request(methods.PUT, config)
       };
 
-      this[methods.DELETE] = (body, config) => {
+      this[methods.DELETE] = async (body, config) => {
         config.body = body;
-        return this.request(methods.DELETE, config)
+        return await this.request(methods.DELETE, config)
       }
     }
 

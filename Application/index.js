@@ -133,9 +133,8 @@ class Application {
     }
   }
 
-  fetchAll() {
-    return this.APIHelper.GET({})
-    .then(data => this.buildProductsFromServerData(data));
+  async fetchAll() {
+    return this.buildProductsFromServerData(await this.APIHelper.GET({}));
   };
 
   buildProductsFromServerData(data) {
@@ -146,7 +145,7 @@ class Application {
     return (new CONSTANTS.TYPES[data.type](data))
   };
 
-  createProduct() {
+  async createProduct() {
 
     if (!this.creationProduct) return;
 
@@ -159,41 +158,46 @@ class Application {
       return;
     }
 
-
-    if(this.creationProduct.id) {
-      return this.APIHelper.PUT(this.creationProduct, {})
-      .then(data => {
+    try{
+      if(this.creationProduct.id) {
+        const data = await this.APIHelper.PUT(this.creationProduct, {});
         const product = this.buildProductFromServerData(data);
         const replacedIndex = this.content.indexOf(this.findProductById(product.id));
         this.content[replacedIndex] = product;
-        this.hideCreationView();
-        this.buildHtmlForData(this.content);
-      })
-      .catch(err => alert(err));
-    } else {
-      return this.APIHelper.POST(this.creationProduct, {})
-      .then(data => {
+      } else {
+        const data = await this.APIHelper.POST(this.creationProduct, {});
         this.content.push(this.buildProductFromServerData(data));
-        this.hideCreationView();
-        this.buildHtmlForData(this.content);
-      });
+      }
     }
+    catch(err) {
+      alert(err);
+      return;
+    }
+
+
+    this.hideCreationView();
+    this.buildHtmlForData(this.content);
+
   };
 
   onUpdateButtonPressed(id) {
     this.showCreationView(this.findProductById(id))
   };
 
-  onDeleteButtonPressed(id) {
-    return this.APIHelper.DELETE(null, {uriModifier: (url) => (url + id)})
-    .then(() => {
-      const deletedIndex = this.content.indexOf(this.findProductById(id));
+  async onDeleteButtonPressed(id) {
+    try{
+      await this.APIHelper.DELETE(null, {uriModifier: (url) => (url + id)})
+    }
+    catch(err) {
+      alert(err);
+      return
+    }
+    const deletedIndex = this.content.indexOf(this.findProductById(id));
 
-      if (deletedIndex !== -1) {
-        this.content.splice(deletedIndex, 1);
-        this.buildHtmlForData(this.content);
-      }
-    })
+    if (deletedIndex !== -1) {
+      this.content.splice(deletedIndex, 1);
+      this.buildHtmlForData(this.content);
+    }
   };
 
   onSearchButtonPressed() {
@@ -247,15 +251,17 @@ class Application {
     window.location.href = "details.html?id=" + productId;
   };
 
-  updateContent() {
-     this.fetchAll()
-    .then(data => {
+  async updateContent() {
+    try {
+      const data = await this.fetchAll();
       this.content = data;
       let [firstItem] = this.content;
       console.log('First fetched item: ', firstItem)
       this.buildHtmlForData(data);
-    })
-    .catch(err => Error(err.message || "Fetching data error"))
+    }
+    catch (err) {
+      alert(new Error(err.message || "Fetching data error"))
+    }
   };
 
   buildHTMLForCreationContent (product, createContent) {
