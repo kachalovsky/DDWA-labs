@@ -12,11 +12,12 @@
 <script src="Application/Utils/API-helper/index.js"></script>
 <script src="Application/Models/Product/index.js"></script>
 <script src="Application/index.js"></script>
-<script>
+<script type="module">
+  import application from './Application/index.js';
+  window.app = application;
   setTimeout(function () {
-    app.fetchProductById(app.getParamFromQueryString('id'), function (err, product) {
-      app.displayProductDetails(product, document.getElementById('content'));
-    });
+    application.fetchProductById(application.getParamFromQueryString('id'))
+    .then(product => application.displayProductDetails(product, document.getElementById('content')));
   }, 0)
 </script>
 </html>

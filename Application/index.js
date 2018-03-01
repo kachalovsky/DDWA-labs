@@ -1,212 +1,321 @@
-var app = new function() {
-  var self = this;
-  var CONSTANTS = {
-    ATTRIBUTIONS: {
-      TYPE: "type",
-      DATA_PICKER: "data-date-inline-picker"
-    },
-    SYMBOLS: {
-      SINGLE_QUOTE: "'",
-      DOUBLE_QUOTE: "\"",
-      EQUAL: "=",
-      SPACE: " ",
-    },
-    IDENTIFIERS: {
-      CREATION_CONTENT: "create-content",
-      CREATION_CONTROL_BUTTON: "create-controller-button",
-    },
-    STYLES: {
-      DISPLAY: {
-        NONE: "none",
-        TABLE_CELL: "table-cell",
-        BLOCK: "block"
-      }
-    },
-    API: {
-      URL: "http://localhost:3000/"
-    },
-    TYPES: {
-      milk: Milk,
-      fish: Fish,
-      product: Product
+import Milk from './Models/Milk/index.js'
+import Fish from './Models/Fish/index.js'
+import Product from './Models/Product/index.js'
+import APIHelper from './Utils/API-helper/index.js'
+
+const CONSTANTS = {
+  ATTRIBUTIONS: {
+    TYPE: 'type',
+    DATA_PICKER: 'data-date-inline-picker'
+  },
+  SYMBOLS: {
+    SINGLE_QUOTE: '\'',
+    DOUBLE_QUOTE: '\"',
+    EQUAL: '=',
+    SPACE: ' ',
+  },
+  IDENTIFIERS: {
+    CREATION_CONTENT: 'create-content',
+    CREATION_CONTROL_BUTTON: 'create-controller-button',
+  },
+  STYLES: {
+    DISPLAY: {
+      NONE: 'none',
+      TABLE_CELL: 'table-cell',
+      BLOCK: 'block'
     }
-  };
+  },
+  API: {
+    URL: 'http://localhost:3000/'
+  },
+  TYPES: {
+    product: Product,
+    milk: Milk,
+    fish: Fish
+  }
+};
+
+
+function generateDefaultCreationTextCell(propertyName, labelText, inputAttributes) {
+  return function (value) {
+    return "<tr>" +
+      "<td>"+ labelText +"</td><td>" +
+      "<input " + generateAttributionString(inputAttributes) + "onchange='app.onFieldChange(" +
+      [CONSTANTS.SYMBOLS.DOUBLE_QUOTE + propertyName + CONSTANTS.SYMBOLS.DOUBLE_QUOTE, "this.value"].join(',') +
+      ")' value='"+ (value || "") +"'/>"+
+      "</td>" +
+      "</tr>"
+  }
+}
+
+function generateProductSelectionCell(creationVariants, currentProduct) {
+  let html = "<div  class='select'> <span class='arr'></span><select onchange='app.onCreationSelectionChanged(this.selectedIndex)'>";
+  html += creationVariants.reduce(function(result, creationVariant, index) {
+    return result + "<option" + ((currentProduct.type === (new creationVariant()).type) ? " selected " : "") + ">" + creationVariant.displayName + "</option>"
+  }, "");
+  html += "</select></div>";
+  return html;
+}
+
+function generateDefaultCreationTextAreaCell(propertyName, name) {
+  return function (value) {
+    return "<tr><td>"+ name +"</td><td><textarea "+ "onchange='app.onFieldChange(" +
+      [CONSTANTS.SYMBOLS.DOUBLE_QUOTE + propertyName + CONSTANTS.SYMBOLS.DOUBLE_QUOTE, "this.value"].join(',') +
+      ")'>"+ (value || "") +"</textarea></td></tr>"
+  }
+}
+
+function generateDefaultDisplayPropertyCell(displayName, value) {
+  return `<tr><td>${displayName}</td><td>${value || '-'}</td></tr>`
+}
+
+function generateValidationCell(propertyName) {
+  return `<tr></tr><td colspan='2' style='display: none' class='validation-cell' id='${buildValidationId(propertyName)}'></td></tr>`
+}
+
+function buildValidationId(propertyName) {
+  return `validation-${propertyName}`;
+}
+
+function generateAttributionString(attributions) {
+  if (!attributions) return '';
+
+  const SYM = CONSTANTS.SYMBOLS;
+  return attributions.reduce(function (result, attribution) {
+    return (`${result}${attribution.name} = '${attribution.value}' `)
+  }, "")
+}
+
+
+
+class Application {
+
+  constructor() {
   this.APIHelper = new APIHelper({url: CONSTANTS.API.URL});
   this.creationVariants = [Milk, Fish, Product];
-
-  
   this.content = [];
-  this.fetchAll = function(callback) {
-    this.APIHelper.GET({}, function (err, data) {
-      if(err) return callback(err);
 
-      callback(null, self.buildProductsFromServerData(data))
-    });
+    this.propertiesCreationHTML = new function () {
+      this.name = generateDefaultCreationTextCell('name', 'Наименование *', [{name: CONSTANTS.ATTRIBUTIONS.TYPE, value: 'text'}]);
+      this.dateOfManufacture = generateDefaultCreationTextCell('dateOfManufacture', 'Дата изготовления *', [
+        {name: CONSTANTS.ATTRIBUTIONS.TYPE, value: 'date'},
+        {name: CONSTANTS.ATTRIBUTIONS.DATA_PICKER, value: 'true'}
+      ]);
+      this.shelfTime = generateDefaultCreationTextCell('shelfTime', 'Срок хранения (дней) *', [{name: CONSTANTS.ATTRIBUTIONS.TYPE, value: "text"}]);
+      this.description = generateDefaultCreationTextAreaCell('description', 'Описание');
+      this.price = generateDefaultCreationTextCell('price', 'Цена (руб) *', [{name: CONSTANTS.ATTRIBUTIONS.TYPE, value: 'text'}]);
+      this.weight = generateDefaultCreationTextCell('weight', 'Вес (кг)', [{name: CONSTANTS.ATTRIBUTIONS.TYPE, value: 'text'}]);
+      this.percentOfFat = generateDefaultCreationTextCell("percentOfFat", "Процент жирности (%) *", [{name: CONSTANTS.ATTRIBUTIONS.TYPE, value: 'text'}]);
+      this.country = generateDefaultCreationTextCell('country', 'Страна происхождения *', [{name: CONSTANTS.ATTRIBUTIONS.TYPE, value: 'text'}]);
+      this.variety = generateDefaultCreationTextCell('variety', 'Вид *', [{name: CONSTANTS.ATTRIBUTIONS.TYPE, value: 'text'}]);
+      this.volume = generateDefaultCreationTextCell('volume', 'Объем (л) *', [{name: CONSTANTS.ATTRIBUTIONS.TYPE, value: 'text'}]);
+    };
+
+
+
+    this.generateDefaultDisplayTextCell = {
+      name: function(value){ return generateDefaultDisplayPropertyCell('Наименование', value)},
+      dateOfManufacture: function(value){ return generateDefaultDisplayPropertyCell('Дата изготовления', value)},
+      shelfTime: function(value){ return generateDefaultDisplayPropertyCell('Срок хранения (дней)', value)},
+      description: function(value){ return generateDefaultDisplayPropertyCell('Описание', value)},
+      price: function(value){ return generateDefaultDisplayPropertyCell('Цена (руб)', value)},
+      weight: function(value){ return generateDefaultDisplayPropertyCell('Вес (кг)', value)},
+      percentOfFat: function(value){ return generateDefaultDisplayPropertyCell('Процент жирности (%)', value)},
+      country: function(value){ return generateDefaultDisplayPropertyCell('Страна происхождения', value)},
+      variety: function(value){ return generateDefaultDisplayPropertyCell('Вид', value)},
+      volume: function(value){ return generateDefaultDisplayPropertyCell('Объем (л)', value)}
+    };
+
+    this.contentGenerator = function* () {
+      for (let product of this.content) {
+        yield product;
+      }
+    }
+  }
+
+  fetchAll() {
+    return this.APIHelper.GET({})
+    .then(data => this.buildProductsFromServerData(data));
   };
 
-  this.buildProductsFromServerData = function(data) {
-    return data.map(function(product) { return self.buildProductFromServerData(product)})
+  buildProductsFromServerData(data) {
+    return data.map((product) => this.buildProductFromServerData(product))
   };
 
-  this.buildProductFromServerData = function(data) {
+  buildProductFromServerData(data) {
     return (new CONSTANTS.TYPES[data.type](data))
   };
 
-  this.createProduct = function () {
-    
-    if (!self.creationProduct) return;
+  createProduct() {
 
-    var validationResult = self.creationProduct.validate();
+    if (!this.creationProduct) return;
+
+    const validationResult = this.creationProduct.validate();
 
     if(!validationResult.isValid) {
-      validationResult.results.forEach(function(propertyValidationResult) {
-        self.checkValidation(propertyValidationResult.propertyName, propertyValidationResult)
+      validationResult.results.forEach((propertyValidationResult) => {
+        this.checkValidation(propertyValidationResult)
       });
       return;
     }
 
 
-    if(self.creationProduct.id) {
-      self.APIHelper.PUT(self.creationProduct, {}, function (err, data) {
-        if(err) return alert(err);
-
-        var product = self.buildProductFromServerData(data);
-        var replacedIndex = self.content.indexOf(findProductById(product.getId()));
-        self.content[replacedIndex] = product;
-        self.hideCreationView();
-        self.buildHtmlForData(self.content);
-      });
+    if(this.creationProduct.id) {
+      return this.APIHelper.PUT(this.creationProduct, {})
+      .then(data => {
+        const product = this.buildProductFromServerData(data);
+        const replacedIndex = this.content.indexOf(this.findProductById(product.id));
+        this.content[replacedIndex] = product;
+        this.hideCreationView();
+        this.buildHtmlForData(this.content);
+      })
+      .catch(err => alert(err));
     } else {
-      self.APIHelper.POST(self.creationProduct, {}, function (err, data) {
-        if(err) return alert(err);
-
-        self.content.push(self.buildProductFromServerData(data));
-        self.hideCreationView();
-        self.buildHtmlForData(self.content);
+      return this.APIHelper.POST(this.creationProduct, {})
+      .then(data => {
+        this.content.push(this.buildProductFromServerData(data));
+        this.hideCreationView();
+        this.buildHtmlForData(this.content);
       });
     }
   };
 
-  this.onUpdateButtonPressed = function (id) {
-    self.showCreationView(findProductById(id))
+  onUpdateButtonPressed(id) {
+    this.showCreationView(this.findProductById(id))
   };
 
-  this.onDeleteButtonPressed = function (id) {
-    this.APIHelper.DELETE(null, {uriModifier: function (url) {
-      return url + id;
-    }}, function (err, data) {
-      if(err) return alert(err.message);
-
-      const deletedIndex = self.content.indexOf(findProductById(id));
+  onDeleteButtonPressed(id) {
+    return this.APIHelper.DELETE(null, {uriModifier: (url) => (url + id)})
+    .then(() => {
+      const deletedIndex = this.content.indexOf(this.findProductById(id));
 
       if (deletedIndex !== -1) {
-        self.content.splice(deletedIndex, 1);
-        self.buildHtmlForData(self.content);
+        this.content.splice(deletedIndex, 1);
+        this.buildHtmlForData(this.content);
       }
     })
   };
 
-  this.navigateToMainView = function() {
-    window.location.href = "index.html";
+  onSearchButtonPressed() {
+    let queryString = document.getElementById('search').value || '';
+    if (!queryString.length) return this.buildHtmlForData(this.content);
+    queryString = queryString.toLowerCase();
+    let searchResult = this.content.filter((product) => {return (product.name.toLowerCase().includes(queryString) ||
+      product.price.toLowerCase().includes(queryString) ||
+      product.dateOfManufacture.toLowerCase().includes(queryString))
+    });
+    this.buildHtmlForData(searchResult, queryString);
+  }
+
+
+  navigateToMainView() {
+    window.location.href = 'index.html';
   };
 
-  this.buildHtmlForData = function(data) {
-    var contentContainer = document.getElementById('content');
-    var html = "";
+  buildHtmlForData(data, searchString = "") {
+    const contentContainer = document.getElementById('content');
+    let html = '';
+
+    html += "<table>";
+    html += "<tr><th>Наименование</th><th>Дата изготовления</th><th>Срок хранения (дней)</th><th>Вес (кг)</th><th>Цена (руб)</th><th style='min-width: 420px !important;' colspan='3'>" +
+      `<input type='text' placeholder='Search query' value='${searchString}' id='search'><input onclick='app.onSearchButtonPressed()' type='button' id='search-button' class='action-button' value='Search'>` +
+      "</th></tr>";
     if (!data.length) {
-      html = "<b>Nothing to show</b>";
+      html += '</table>';
+      html += `<b>${searchString.length ? 'Результаты не найдены' : 'Список пуст'}</b>`;
+
       contentContainer.innerHTML = html;
       return;
     }
-
-    html += "<table>";
-    html += "<tr><th>Наименование</th><th>Дата изготовления</th><th>Срок хранения (дней)</th><th>Вес (кг)</th><th>Цена (руб)</th></tr>";
     data.forEach(function (product) {
       html += "<tr>";
-      html += "<td>"+ (product.getName() || "") + "</td>";
-      html += "<td>"+ (product.getDateOfManufacture() || "") + "</td>";
-      html += "<td>"+ (product.getShelfTime() || "") + "</td>";
-      html += "<td>"+ (product.getWeight() || "") + "</td>";
-      html += "<td>"+ (product.getPrice() || "") + "</td>";
-      html += "<td>"+ "<input class='orange-button' type='button' onclick=app.onUpdateButtonPressed('" + product.getId() + "') value='Изменить' />" || "" + "</td>";
-      html += "<td>"+ "<input class='red-button' type='button' onclick=app.onDeleteButtonPressed('"+ product.getId() +"') value='Удалить' />" + "</td>";
-      html += "<td>"+ "<input class='blue-button' type='button' onclick=app.navigateToDetailsView('"+ product.getId() + "') value='Подробнее' />" || "" + "</td>";
+      html += "<td>"+ (product.name || "") + "</td>";
+      html += "<td>"+ (product.dateOfManufacture || "") + "</td>";
+      html += "<td>"+ (product.shelfTime || "") + "</td>";
+      html += "<td>"+ (product.weight || "") + "</td>";
+      html += "<td>"+ (product.price || "") + "</td>";
+      html += "<td>"+ "<input class='orange-button' type='button' onclick=app.onUpdateButtonPressed('" + product.id + "') value='Изменить' />" || "" + "</td>";
+      html += "<td>"+ "<input class='red-button' type='button' onclick=app.onDeleteButtonPressed('"+ product.id +"') value='Удалить' />" + "</td>";
+      html += "<td>"+ "<input class='blue-button' type='button' onclick=app.navigateToDetailsView('"+ product.id + "') value='Подробнее' />" || "" + "</td>";
       html += "</tr>"
     });
     html += "</table>";
     contentContainer.innerHTML = html;
   };
 
-  this.navigateToDetailsView =function(productId) {
+  navigateToDetailsView(productId) {
     window.location.href = "details.html?id=" + productId;
   };
 
-  this.updateContent = function() {
-    self.fetchAll(function (err, data) {
-      if (err) throw Error(err.message || "Fetching data error");
-      self.content = data;
-      self.buildHtmlForData(data);
+  updateContent() {
+     this.fetchAll()
+    .then(data => {
+      this.content = data;
+      let [firstItem] = this.content;
+      console.log('First fetched item: ', firstItem)
+      this.buildHtmlForData(data);
     })
+    .catch(err => Error(err.message || "Fetching data error"))
   };
 
-  this.buildHTMLForCreationContent = function (product, createContent) {
+  buildHTMLForCreationContent (product, createContent) {
     createContent = createContent || document.getElementById(CONSTANTS.IDENTIFIERS.CREATION_CONTENT);
     product = product || new Product();
-    self.creationProduct = product;
-    var html = "";
+    this.creationProduct = product;
+    let html = "";
     html += "<table>";
-    html += generateProductSelectionCell(self.creationVariants, product);
-    product.displayProperties.forEach(function (property) {
-      propertiesCreationHTML[property] && (html += generateValidationCell(property) + propertiesCreationHTML[property](product[property]));
+    html += generateProductSelectionCell(this.creationVariants, product);
+    product.displayProperties.forEach((property) => {
+      this.propertiesCreationHTML[property] && (html += generateValidationCell(property) + this.propertiesCreationHTML[property](product[property]));
     });
     html += "</table>";
-    html += "<input type='button' class='action-button' onclick='app.createProduct()' value=" + (product.getId() ? "'Обновить'" :"'Добавить'") + "/>";
+    html += "<input type='button' class='action-button' onclick='app.createProduct()' value=" + (product.id ? "'Обновить'" :"'Добавить'") + "/>";
     createContent.innerHTML = html;
   };
 
-  this.showCreationView = function (product) {
-    var createContent = document.getElementById(CONSTANTS.IDENTIFIERS.CREATION_CONTENT);
-    var button = document.getElementById(CONSTANTS.IDENTIFIERS.CREATION_CONTROL_BUTTON);
-    button.value = "Отмена";
+  showCreationView(product) {
+    const createContent = document.getElementById(CONSTANTS.IDENTIFIERS.CREATION_CONTENT);
+    const button = document.getElementById(CONSTANTS.IDENTIFIERS.CREATION_CONTROL_BUTTON);
+    button.value = 'Отмена';
     createContent.style.display = CONSTANTS.STYLES.DISPLAY.BLOCK;
-    self.buildHTMLForCreationContent(product);
+    this.buildHTMLForCreationContent(product);
   };
 
-  this.hideCreationView = function() {
-    var createContent = document.getElementById(CONSTANTS.IDENTIFIERS.CREATION_CONTENT);
-    var button = document.getElementById(CONSTANTS.IDENTIFIERS.CREATION_CONTROL_BUTTON);
+  hideCreationView() {
+    const createContent = document.getElementById(CONSTANTS.IDENTIFIERS.CREATION_CONTENT);
+    const button = document.getElementById(CONSTANTS.IDENTIFIERS.CREATION_CONTROL_BUTTON);
     createContent.style.display = CONSTANTS.STYLES.DISPLAY.NONE;
-    button.value = "Добавить продукт";
-    self.creationProduct = new Product();
+    button.value = 'Добавить продукт';
+    this.creationProduct = new Product();
   };
 
-  this.onCreationControlPressed = function() {
-    var createContent = document.getElementById(CONSTANTS.IDENTIFIERS.CREATION_CONTENT);
-    var contentDisplayValue = createContent.style.display;
+  onCreationControlPressed() {
+    const createContent = document.getElementById(CONSTANTS.IDENTIFIERS.CREATION_CONTENT);
+    const contentDisplayValue = createContent.style.display;
     if (contentDisplayValue !== CONSTANTS.STYLES.DISPLAY.NONE)
-      self.hideCreationView();
+      this.hideCreationView();
     else
-      self.showCreationView(self.creationProduct)
+      this.showCreationView(this.creationProduct)
   };
 
-  this.onCreationSelectionChanged = function (index) {
-    self.creationProduct = new self.creationVariants[index](self.creationProduct || {});
-    self.buildHTMLForCreationContent(self.creationProduct)
+  onCreationSelectionChanged(index) {
+    this.creationProduct = new this.creationVariants[index](this.creationProduct || {});
+    this.buildHTMLForCreationContent(this.creationProduct)
   };
 
-  this.onFieldChange = function(propertyName, value) {
-    if(!this.creationProduct.hasOwnProperty(propertyName)) return;
+  onFieldChange(propertyName, value) {
+    if(!this.creationProduct.hasOwnProperty(`_${propertyName}`)) return;
 
     this.creationProduct[propertyName] = value;
-    var validationResult = this.creationProduct.validate(propertyName);
-    this.checkValidation(propertyName, validationResult)
+    const validationResult = this.creationProduct.validate(propertyName);
+    this.checkValidation(validationResult)
   };
 
-  this.checkValidation = function (propertyName, validationResult) {
-    var validationId = buildValidationId(propertyName);
-    var validationField = document.getElementById(validationId);
-    if (!validationResult.isValid) {
-      validationField.innerHTML = validationResult.cause;
+  checkValidation({propertyName, isValid, cause}) {
+    const validationId = buildValidationId(propertyName);
+    const validationField = document.getElementById(validationId);
+    if (!isValid) {
+      validationField.innerHTML = cause;
       validationField.style.display = CONSTANTS.STYLES.DISPLAY.TABLE_CELL
     }
     else {
@@ -215,21 +324,15 @@ var app = new function() {
     }
   };
 
-  this.fetchProductById = function(id, callback) {
-    self.APIHelper.GET({uriModifier: function (url) {
-      return url + id;
-    }}, function (err, data) {
-      if (err) return alert(err.message);
-
-      var displayedProduct = self.buildProductFromServerData(data);
-      callback(null, displayedProduct);
-    })
+  fetchProductById(id) {
+    return this.APIHelper.GET({uriModifier: (url) => (url + id)})
+    .then(data => this.buildProductFromServerData(data))
   };
 
-  this.displayProductDetails = function (product, container) {
-    var html = "<table>";
-    product.displayProperties.forEach(function (propertyName) {
-      var htmlGenerator = generateDefaultDisplayTextCell[propertyName];
+  displayProductDetails (product, container)  {
+    let html = "<table>";
+    product.displayProperties.forEach((propertyName) => {
+      const htmlGenerator = this.generateDefaultDisplayTextCell[propertyName];
 
       html += htmlGenerator ? htmlGenerator(product[propertyName]) : "";
     });
@@ -237,102 +340,27 @@ var app = new function() {
     container.innerHTML = html;
   };
 
-  this.getParamFromQueryString = function (paramName) {
-    var url = window.location.href;
-    paramName = paramName.replace(/[\[\]]/g, "\\$&");
-    var regex = new RegExp("[?&]" + paramName + "(=([^&#]*)|&|#|$)"),
+  getParamFromQueryString(paramName) {
+    const url = window.location.href;
+    paramName = paramName.replace(/[\[\]]/g, '\\$&');
+    const regex = new RegExp(`[?&]${paramName}(=([^&#]*)|&|#|$)`),
       results = regex.exec(url);
     if (!results) return null;
     if (!results[2]) return '';
-    return decodeURIComponent(results[2].replace(/\+/g, " "));
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
   };
 
-  var propertiesCreationHTML = new function () {
-    this.name = generateDefaultCreationTextCell("name", "Наименование *", [{name: CONSTANTS.ATTRIBUTIONS.TYPE, value: "text"}]);
-    this.dateOfManufacture = generateDefaultCreationTextCell("dateOfManufacture", "Дата изготовления *", [
-      {name: CONSTANTS.ATTRIBUTIONS.TYPE, value: "date"},
-      {name: CONSTANTS.ATTRIBUTIONS.DATA_PICKER, value: "true"}
-    ]);
-    this.shelfTime = generateDefaultCreationTextCell("shelfTime", "Срок хранения (дней) *", [{name: CONSTANTS.ATTRIBUTIONS.TYPE, value: "text"}]);
-    this.description = generateDefaultCreationTextAreaCell('description', "Описание");
-    this.price = generateDefaultCreationTextCell("price", "Цена (руб) *", [{name: CONSTANTS.ATTRIBUTIONS.TYPE, value: "text"}]);
-    this.weight = generateDefaultCreationTextCell("weight", "Вес (кг)", [{name: CONSTANTS.ATTRIBUTIONS.TYPE, value: "text"}]);
-    this.percentOfFat = generateDefaultCreationTextCell("percentOfFat", "Процент жирности (%) *", [{name: CONSTANTS.ATTRIBUTIONS.TYPE, value: "text"}]);
-    this.country = generateDefaultCreationTextCell("country", "Страна происхождения *", [{name: CONSTANTS.ATTRIBUTIONS.TYPE, value: "text"}]);
-    this.variety = generateDefaultCreationTextCell("variety", "Вид *", [{name: CONSTANTS.ATTRIBUTIONS.TYPE, value: "text"}]);
-    this.volume = generateDefaultCreationTextCell("volume", "Объем (л) *", [{name: CONSTANTS.ATTRIBUTIONS.TYPE, value: "text"}]);
-  };
-
-
-
-  var generateDefaultDisplayTextCell = {
-    name: function(value){ return generateDefaultDisplayPropertyCell('Наименование', value)},
-    dateOfManufacture: function(value){ return generateDefaultDisplayPropertyCell('Дата изготовления', value)},
-    shelfTime: function(value){ return generateDefaultDisplayPropertyCell('Срок хранения (дней)', value)},
-    description: function(value){ return generateDefaultDisplayPropertyCell('Описание', value)},
-    price: function(value){ return generateDefaultDisplayPropertyCell('Цена (руб)', value)},
-    weight: function(value){ return generateDefaultDisplayPropertyCell('Вес (кг)', value)},
-    percentOfFat: function(value){ return generateDefaultDisplayPropertyCell('Процент жирности (%)', value)},
-    country: function(value){ return generateDefaultDisplayPropertyCell('Страна происхождения', value)},
-    variety: function(value){ return generateDefaultDisplayPropertyCell('Вид', value)},
-    volume: function(value){ return generateDefaultDisplayPropertyCell('Объем (л)', value)}
-  };
-
-  function generateDefaultCreationTextCell(propertyName, labelText, inputAttributes) {
-    return function (value) {
-      return "<tr>" +
-        "<td>"+ labelText +"</td><td>" +
-          "<input " + generateAttributionString(inputAttributes) + "onchange='app.onFieldChange(" +
-            [CONSTANTS.SYMBOLS.DOUBLE_QUOTE + propertyName + CONSTANTS.SYMBOLS.DOUBLE_QUOTE, "this.value"].join(',') +
-          ")' value='"+ (value || "") +"'/>"+
-        "</td>" +
-        "</tr>"
+  findProductById(id) {
+    const contentGen = this.contentGenerator();
+    let item = contentGen.next();
+    while (!item.done) {
+      if (item.value.id === id) return item.value;
+      item = contentGen.next();
     }
   }
 
-  function generateProductSelectionCell(creationVariants, currentProduct) {
-    var html = "<div  class='select'> <span class='arr'></span><select onchange='app.onCreationSelectionChanged(this.selectedIndex)'>";
-    html += creationVariants.reduce(function(result, creationVariant, index) {
-      return result + "<option" + ((currentProduct instanceof creationVariant) ? " selected " : "") + ">" + creationVariant.displayName + "</option>"
-    }, "");
-    html += "</select></div>";
-    return html;
-  }
+}
 
-  function generateDefaultCreationTextAreaCell(propertyName, name) {
-    return function (value) {
-      return "<tr><td>"+ name +"</td><td><textarea "+ "onchange='app.onFieldChange(" +
-        [CONSTANTS.SYMBOLS.DOUBLE_QUOTE + propertyName + CONSTANTS.SYMBOLS.DOUBLE_QUOTE, "this.value"].join(',') +
-        ")'>"+ (value || "") +"</textarea></td></tr>"
-    }
-  }
+const app = new Application();
 
-  function generateDefaultDisplayPropertyCell(displayName, value) {
-    return "<tr><td>"+ displayName +"</td><td>"+ (value || "-") +"</td></tr>"
-  }
-
-  function generateValidationCell(propertyName) {
-    return "<tr></tr><td colspan='2' style='display: none' class='validation-cell' id='"+ buildValidationId(propertyName) +"'></td></tr>"
-  }
-
-  function buildValidationId(propertyName) {
-    return "validation-" + propertyName;
-  }
-
-  function generateAttributionString(attributions) {
-    if (!attributions) return "";
-
-    var SYM = CONSTANTS.SYMBOLS;
-    return attributions.reduce(function (result, attribution) {
-      return (result + attribution.name + SYM.EQUAL + SYM.SINGLE_QUOTE + attribution.value + SYM.SINGLE_QUOTE + SYM.SPACE)
-    }, "")
-  }
-
-  function findProductById(id) {
-    for (var index in self.content) {
-      var product = self.content[index];
-      if (product.getId() === id) return product;
-    }
-  }
-
-};
+export default app;

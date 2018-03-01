@@ -155,3 +155,19 @@ input[type="text"], textarea {
     width: 100%;
     min-height: 25px;
 }
+
+input#search {
+    width: 252px !important;
+    float: left;
+    margin: 20px 20px ;
+}
+
+input#search-button {
+    width: 74px !important;
+    margin-left: 10px;
+    margin-right: 20px;
+    border-radius: 5px;
+    padding: 10px 5px;
+    float: left;
+
+}

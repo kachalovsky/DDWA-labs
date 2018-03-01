@@ -1,60 +1,60 @@
-;(function () {
+const methods = {
+  GET: 'GET',
+  PUT: 'PUT',
+  POST: 'POST',
+  DELETE: 'DELETE'
+};
 
-  var methods = {
-    GET: "GET",
-    PUT: "PUT",
-    POST: "POST",
-    DELETE: "DELETE"
-  };
+export default class ApiHelper {
+    constructor(config) {
+      this.url = config.url || config.URL;
 
-  function apiHelper(config) {
-    this.url = config.url || config.URL;
-    var self = this;
+      this[methods.GET] = (config) => {
+        return this.request(methods.GET, config)
+      };
 
-    function request(method, config, callback) {
-      var xhr = new XMLHttpRequest();
+      this[methods.POST] = (body, config) => {
+        config.body = body;
+        return this.request(methods.POST, config)
+      };
 
-      var url = self.url;
-      if (config.uriModifier) {
-        url = config.uriModifier(url);
-      }
-      xhr.open(method, url, true);
+      this[methods.PUT] = (body, config) => {
+        config.body = body;
+        return this.request(methods.PUT, config)
+      };
 
-      xhr.setRequestHeader('Content-type','application/json; charset=utf-8');
-      xhr.send((config.body ? JSON.stringify(config.body) : null));
-
-      xhr.onreadystatechange = function() {
-        if (this.readyState !== 4) return;
-
-        if (this.status !== 200) {
-          return callback (new Error(xhr.responseText))
-        }
-
-        return callback(null, JSON.parse(xhr.responseText))
+      this[methods.DELETE] = (body, config) => {
+        config.body = body;
+        return this.request(methods.DELETE, config)
       }
     }
 
-    this[methods.GET] = function (config, callback) {
-      request(methods.GET, config, callback)
-    };
 
-    this[methods.POST] = function (body, config, callback) {
-      config.body = body;
-      request(methods.POST, config, callback)
-    };
+    request(method, config) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
 
-    this[methods.PUT] = function (body, config, callback) {
-      config.body = body;
-      request(methods.PUT, config, callback)
-    };
+        let url = this.url;
+        if (config.uriModifier) {
+          url = config.uriModifier(url);
+        }
+        xhr.open(method, url, true);
 
-    this[methods.DELETE] = function (body, config, callback) {
-      config.body = body;
-      request(methods.DELETE, config, callback)
+        xhr.setRequestHeader('Content-type','application/json; charset=utf-8');
+        xhr.send((config.body ? JSON.stringify(config.body) : null));
+        xhr.onreadystatechange = () => {
+          if (xhr.readyState !== 4) return;
+
+          if (xhr.status !== 200) {
+            return reject (new Error(xhr.responseText))
+          }
+          return resolve(JSON.parse(xhr.responseText))
+        }
+      })
     }
   }
 
-  apiHelper.methods = methods;
 
-  window.APIHelper = apiHelper;
-})();
+  // apiHelper.methods = methods;
+  //
+  // window.APIHelper = apiHelper;

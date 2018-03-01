@@ -16,10 +16,9 @@
     <div id="content">
 
     </div>
-    <script src="Application/Utils/API-helper/index.js"></script>
-    <script src="Application/Models/Product/index.js"></script>
-    <script src="Application/index.js"></script>
-    <script>
+    <script type="module">
+        import application from './Application/index.js';
+        window.app = application;
         setTimeout(function () {
           app.updateContent();
         }, 0)
