@@ -6,8 +6,8 @@ const methods = {
 };
 
 export default class ApiHelper {
-    constructor(config) {
-      this.url = config.url || config.URL;
+    constructor(config = {}) {
+      this.url = config.url || config.URL || 'http://localhost:3000/';
 
       this[methods.GET] = async (config) => {
         return await this.request(methods.GET, config)
@@ -30,7 +30,7 @@ export default class ApiHelper {
     }
 
 
-    request(method, config) {
+    request(method = methods.GET, config = {}) {
       return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
 
@@ -57,4 +57,4 @@ export default class ApiHelper {
 
   // apiHelper.methods = methods;
   //
-  // window.APIHelper = apiHelper;
+  window.APIHelper = ApiHelper;

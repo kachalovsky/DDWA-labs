@@ -1,7 +1,7 @@
-import Milk from './Models/Milk/index.js'
-import Fish from './Models/Fish/index.js'
-import Product from './Models/Product/index.js'
-import APIHelper from './Utils/API-helper/index.js'
+import Milk from './models/milk/index.js'
+import Fish from './models/fish/index.js'
+import Product from './models/product/index.js'
+import APIHelper from './utils/api-helper/index.js'
 
 const CONSTANTS = {
   ATTRIBUTIONS: {
@@ -32,6 +32,9 @@ const CONSTANTS = {
     product: Product,
     milk: Milk,
     fish: Fish
+  },
+  WORKER: {
+    TIMESTAMP_LS_KEY: 'last_update_count_of_event',
   }
 };
 
@@ -222,7 +225,7 @@ class Application {
 
     html += "<table>";
     html += "<tr><th>Наименование</th><th>Дата изготовления</th><th>Срок хранения (дней)</th><th>Вес (кг)</th><th>Цена (руб)</th><th style='min-width: 420px !important;' colspan='3'>" +
-      `<input type='text' placeholder='Search query' value='${searchString}' id='search'><input onclick='app.onSearchButtonPressed()' type='button' id='search-button' class='action-button' value='Search'>` +
+      `<input type='text' placeholder='Поиск' value='${searchString}' id='search'><input onclick='app.onSearchButtonPressed()' type='button' id='search-button' class='action-button' value='Найти'>` +
       "</th></tr>";
     if (!data.length) {
       html += '</table>';

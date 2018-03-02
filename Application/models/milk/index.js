@@ -1,4 +1,4 @@
-import Product from '../Product/index.js'
+import Product from '../product/index.js'
 import {VALIDATION_MESSAGES} from "../constants.js"
 
 export default class Milk extends Product {
