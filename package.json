@@ -1,0 +1,37 @@
+{
+  "name": "ECMAScript_5",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "webpack-dev-server --mode development --open --progress --inline --hot"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kachalovsky/DDWA-labs.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kachalovsky/DDWA-labs/issues"
+  },
+  "homepage": "https://github.com/kachalovsky/DDWA-labs#readme",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.4",
+    "babel-preset-env": "^1.6.1",
+    "css-loader": "^0.28.10",
+    "file-loader": "^1.1.11",
+    "image-webpack-loader": "^4.1.0",
+    "postcss-loader": "^2.1.1",
+    "postcss-smart-import": "^0.7.6",
+    "style-loader": "^0.20.3",
+    "uglifyjs-webpack-plugin": "^1.2.3",
+    "webpack": "^4.1.1",
+    "webpack-dev-server": "^3.1.1"
+  },
+  "dependencies": {
+    "babel-polyfill": "^6.26.0"
+  }
+}
