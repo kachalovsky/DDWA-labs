@@ -1,5 +1,5 @@
 const UPDATE_PERIOD = 60000; //milliseconds
-const URL = 'http://localhost:3000/';
+const URL = 'http://192.168.0.108:3000/';
 let responseHandler;
 
 console.log('WORKER')
