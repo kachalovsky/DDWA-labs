@@ -3,9 +3,9 @@
 <head>
     <title>Products manager</title>
     <meta charset="utf-8">
-    <link rel="stylesheet" type="text/css" href="./styles/style.css">
 </head>
 <body>
+    <div id="logo"></div>
     <div id="create-area">
         <div id="create-controller">
             <input id="create-controller-button" value="Добавить продукт" onclick="app.onCreationControlPressed()" type="button" class="navigation-button">
@@ -17,13 +17,15 @@
 
     </div>
     <div id="count-of-products"></div>
-    <script type="module">
-        import application from './Application/index.js';
-        window.app = application;
-        setTimeout(function () {
-          app.updateContent();
-        }, 0)
-    </script>
-<script src="Application/workers/update-count-of-products/index.js"></script>
+    <div id="banner"></div>
+
+
+<!--<script src="Application/workers/update-count-of-products/index.js"></script>-->
+<script src="dist/bundle.js"></script>
+<script>
+    setTimeout(function () {
+    app.updateContent();
+    }, 0)
+</script>
 </body>
 </html>

@@ -9,12 +9,11 @@
     <input type="button" onclick="app.navigateToMainView()" class="navigation-button" value="Назад"/>
     <div id="content"></div>
 </body>
-<script type="module">
-  import application from './Application/index.js';
-  window.app = application;
+<script src="dist/bundle.js"></script>
+<script>
   setTimeout(function () {
-    application.fetchProductById(application.getParamFromQueryString('id'))
-    .then(product => application.displayProductDetails(product, document.getElementById('content')));
+    app.fetchProductById(app.getParamFromQueryString('id'))
+    .then(product => app.displayProductDetails(product, document.getElementById('content')));
   }, 0)
 </script>
 </html>

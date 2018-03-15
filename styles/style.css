@@ -1,6 +1,20 @@
 #create-content {
 }
 
+#logo {
+    background-image: url('../Assets/logo.png');
+    width: 130px;
+    height: 100px;
+    background-size:cover;
+}
+
+#banner {
+    background-image: url('../Assets/banner.png');
+    width: 1000px;
+    height: 150px;
+    background-size:cover;
+}
+
 .validation-cell {
     color: red;
 }

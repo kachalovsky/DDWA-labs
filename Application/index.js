@@ -1,7 +1,11 @@
+require("babel-core/register");
+require("babel-polyfill");
+
 import Milk from './models/milk/index.js'
 import Fish from './models/fish/index.js'
 import Product from './models/product/index.js'
 import APIHelper from './utils/api-helper/index.js'
+import style from '../styles/style.css';
 
 const CONSTANTS = {
   ATTRIBUTIONS: {
@@ -97,6 +101,7 @@ class Application {
   this.APIHelper = new APIHelper({url: CONSTANTS.API.URL});
   this.creationVariants = [Milk, Fish, Product];
   this.content = [];
+  this.sortState = {};
 
     this.propertiesCreationHTML = new function () {
       this.name = generateDefaultCreationTextCell('name', 'Наименование *', [{name: CONSTANTS.ATTRIBUTIONS.TYPE, value: 'text'}]);
@@ -219,12 +224,23 @@ class Application {
     window.location.href = 'index.html';
   };
 
+  onSortPressed(prop) {
+    const state = this.sortState[prop] = !this.sortState[prop];
+    const multiplier = state ? -1 : 1;
+    this.content = this.content.sort((a, b) => {
+      if(a[prop] < b[prop]) return (-1 * multiplier);
+      else if (a[prop] > b[prop]) return (1 * multiplier);
+      else return 0;
+    });
+    this.buildHtmlForData(this.content);
+  }
+
   buildHtmlForData(data, searchString = "") {
     const contentContainer = document.getElementById('content');
     let html = '';
 
     html += "<table>";
-    html += "<tr><th>Наименование</th><th>Дата изготовления</th><th>Срок хранения (дней)</th><th>Вес (кг)</th><th>Цена (руб)</th><th style='min-width: 420px !important;' colspan='3'>" +
+    html += "<tr><th onclick='app.onSortPressed(\"name\")'>Наименование</th><th onclick='app.onSortPressed(\"dateOfManufacture\")'>Дата изготовления</th><th  onclick='app.onSortPressed(\"shelfTime\")'>Срок хранения (дней)</th><th  onclick='app.onSortPressed(\"weight\")'>Вес (кг)</th><th  onclick='app.onSortPressed(\"price\")'>Цена (руб)</th><th style='min-width: 420px !important;' colspan='3'>" +
       `<input type='text' placeholder='Поиск' value='${searchString}' id='search'><input onclick='app.onSearchButtonPressed()' type='button' id='search-button' class='action-button' value='Найти'>` +
       "</th></tr>";
     if (!data.length) {
@@ -371,5 +387,5 @@ class Application {
 }
 
 const app = new Application();
-
-export default app;
+window.app = app;
+console.log("I'm here")
