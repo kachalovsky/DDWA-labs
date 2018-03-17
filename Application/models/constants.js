@@ -5,10 +5,10 @@ const VALIDATION_MESSAGES = {
     DATE_OF_MANUFACTURE_REQUIRED: 'Дата изготовления - обязательное поле',
     DATE_OF_MANUFACTURE_INVALID: 'Дата изготовления имеет неверный формат.',
     SHELF_TIME_REQUIRED: 'Срок хранения - обязательное поле',
-    SHELF_TIME_SHOULD_BE_NUMBER: 'Срок хранения должна быть целым числом',
+    SHELF_TIME_SHOULD_BE_NUMBER: 'Срок хранения должна положительным быть целым числом',
     PRICE_REQUIRED: 'Цена - обязательное поле',
-    PRICE_SHOULD_BE_NUMBER: 'Цена должна быть числом',
-    WEIGHT_SHOULD_BE_NUMBER: 'Вес должен быть числом'
+    PRICE_SHOULD_BE_NUMBER: 'Цена должна положительным быть числом',
+    WEIGHT_SHOULD_BE_NUMBER: 'Вес должен  положительным быть числом'
   },
   MILK: {
     PERCENT_OF_FAT_REQUIRED: 'Процент жирности - обязательное поле',

@@ -7,7 +7,7 @@ const methods = {
 
 export default class ApiHelper {
     constructor(config = {}) {
-      this.url = config.url || config.URL || 'http://192.168.0.108:3000/';
+      this.url = config.url || config.URL || 'http://192.168.207.1:3000/';
 
       this[methods.GET] = async (config) => {
         return await this.request(methods.GET, config)

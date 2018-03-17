@@ -21,8 +21,12 @@ function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
+function tideString(str) {
+  return str.replace(/([^a-z0-9]+)/gi, '');
+}
+
 //name, dateOfManufacture, shelfTime, description, price, weight
-export default class Product extends BaseEntity{
+export default class Product extends BaseEntity {
   static get displayName(){
     return 'Другое';
   }
@@ -105,6 +109,7 @@ export default class Product extends BaseEntity{
 
     this.addValidationCases({
       name: (value) => {
+        value = tideString(value);
         if(!value || value === '') return VALIDATION_MESSAGES.PRODUCT.NAME_REQUIRED;
         if(value.lenght < 4) return VALIDATION_MESSAGES.PRODUCT.NAME_REQUIRED;
 
@@ -118,20 +123,20 @@ export default class Product extends BaseEntity{
       },
       shelfTime: (value) => {
         if(!value || value === '') return VALIDATION_MESSAGES.PRODUCT.SHELF_TIME_REQUIRED;
-        if(isNaN(Number(value))) return VALIDATION_MESSAGES.PRODUCT.SHELF_TIME_SHOULD_BE_NUMBER;
+        if(isNaN(Number(value)) || Number(value) < 0) return VALIDATION_MESSAGES.PRODUCT.SHELF_TIME_SHOULD_BE_NUMBER;
         if(Number(value) !== Math.ceil(value)) return VALIDATION_MESSAGES.PRODUCT.SHELF_TIME_SHOULD_BE_NUMBER;
 
         return null;
       },
       price: (value) => {
         if(!value || value === '') return VALIDATION_MESSAGES.PRODUCT.PRICE_REQUIRED;
-        if(isNaN(Number(value))) return VALIDATION_MESSAGES.PRODUCT.PRICE_SHOULD_BE_NUMBER;
+        if(isNaN(Number(value)) || Number(value) < 0) return VALIDATION_MESSAGES.PRODUCT.PRICE_SHOULD_BE_NUMBER;
 
         return null;
       },
       weight: (value) => {
         if(!value || value === '') return null;
-        if(isNaN(Number(value))) return VALIDATION_MESSAGES.PRODUCT.WEIGHT_SHOULD_BE_NUMBER;
+        if(isNaN(Number(value)) || Number(value) < 0) return VALIDATION_MESSAGES.PRODUCT.WEIGHT_SHOULD_BE_NUMBER;
 
         return null;
       }

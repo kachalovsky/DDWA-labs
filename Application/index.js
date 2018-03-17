@@ -30,7 +30,7 @@ const CONSTANTS = {
     }
   },
   API: {
-    URL: 'http://192.168.0.108:3000/'
+    URL: 'http://192.168.207.1:3000/'
   },
   TYPES: {
     product: Product,
