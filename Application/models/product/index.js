@@ -22,6 +22,7 @@ function capitalizeFirstLetter(string) {
 }
 
 function tideString(str) {
+  if (!str) return str;
   return str.replace(/([^a-z0-9]+)/gi, '');
 }
 
